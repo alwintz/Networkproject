@@ -3,16 +3,19 @@ import socket
 HOST = "127.0.0.1"
 PORT = 5000
 
-username = input("Enter your username: ")
+username = input("Enter username: ")
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((HOST, PORT))
 
 client.send(username.encode())
 
-print(f"Connected to server as {username}")
+while True:
+    message = input("Message: ")
 
-message = client.recv(1024).decode()
-print(message)
+    if message.lower() == "exit":
+        break
+
+    client.send(message.encode())
 
 client.close()
