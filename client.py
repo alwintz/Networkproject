@@ -17,6 +17,88 @@ class ChatClient:
 
         print(f"Connected to server as {self.username}")
 
+    def begin(self):
+        print("1. Sign Up")
+        print("2. Login")
+
+        def get_credentials ():
+                username = input("Username: ")
+                password = input("Password: ")
+                return username, password
+        
+        while True:
+            
+         choice = input("Select the option nr: ")
+
+         #Sign up and redirect to Login
+         if choice == "1":
+                print("\n===Sign Up===")
+                username, password = get_credentials()
+                message = f"signup|{username}|{password}"
+                try: 
+                 self.client.send(message.encode())
+                except:
+                 print("Failed to send the option (Sign Up)")
+
+                try:
+                 response = self.client.recv(1024).decode() 
+                 print(response)
+                except:
+                    print("Server disconnected")
+                    return
+
+                if response != "SUCCESS": 
+                 continue
+
+
+                print("\n===Login===")
+                username, password = get_credentials()
+                message = f"login|{username}|{password}"
+                try:
+                 self.client.send(message.encode())
+                except:
+                    print("Failed to send the option (Login)")
+
+                try:
+                    response = self.client.recv(1024).decode() 
+                    print(response)
+                except:
+                    print("Server disconnected")
+                    return
+                
+                if response == "SUCCESS":
+                 self.username = username
+                 print("Logged in")
+                 break   
+         
+         #Login direct
+         elif choice == "2":
+                print("\n===Login===")
+                username, password = get_credentials()
+                message = f"login|{username}|{password}"
+                try:
+                 self.client.send(message.encode())
+                except:
+                 print("Failed to send the option (Login)")
+
+                try:
+                    response = self.client.recv(1024).decode() 
+                    print(response)
+                except:
+                    print("Server disconnected")
+                    return
+                
+                if response == "SUCCESS":
+                 self.username = username
+                 print("Logged in")
+                 break 
+                 
+         else:
+          print("Invalid option. Please select 1 or 2")
+        
+
+
+
     def receive_messages(self):
         while True:
             try:
