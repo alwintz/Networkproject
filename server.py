@@ -80,7 +80,45 @@ print("Waiting for clients...")
 
 #<Any other message> - broadcast to current room
 
+#authenticate and return the username
+def authenticate(client_socket):
+    try:
+     auth_message = client_socket.recv(1024).decode() 
+
+     if not auth_message:
+      return
+    
+     splits = auth_message.split("|")
+     action = splits[0]
+     username = splits[1]
+     password = splits[2]
+
+     if action == "signup":
+         response = UserService.signUp(username, password)
+         client_socket.send(response.encode())
+         if response != "SUCCESS":
+          return
+         return None
+         
+     elif action == "login":
+        response = UserService.LogIn(username, password)
+        client_socket.send(response.encode())
+        if response != "SUCCESS":
+           return
+    
+     return username
+
+    except Exception as e:
+        print("AUTH ERROR: ", e)
+        return
+      
 def handle_client(client_socket, client_address):
+    username = None
+    while not username:
+     username = authenticate(client_socket)
+     if not username:
+       continue    # to skip the below logic and repeat this until the authenticate returns username (logged in)
+       
    # adding each client connection 
     clients.append({                 # 
         "socket": client_socket,
