@@ -9,13 +9,10 @@ PORT = 5000
 class ChatClient:
 
     def __init__(self):
-        self.username = input("Enter your username: ")
 
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.connect((HOST, PORT))
-        self.client.send(self.username.encode())
 
-        print(f"Connected to server as {self.username}")
 
     def begin(self):
         print("1. Sign Up")
@@ -97,8 +94,6 @@ class ChatClient:
           print("Invalid option. Please select 1 or 2")
         
 
-
-
     def receive_messages(self):
         while True:
             try:
@@ -109,7 +104,8 @@ class ChatClient:
                 print("Disconnected from server")
                 break
 
-    def send_message(self):
+
+    def send_message_room(self):
         print("\n=== CHAT MODE ===")
         print("Type your message and press Enter.")
         print("Type /menu to return to the main menu.")
@@ -146,13 +142,22 @@ class ChatClient:
             else:
                 print("Invalid room. Please try again.")
 
-    def show_users(self):
-        self.client.send("SHOW_USERS".encode())
-        input("\nPress Enter to return to menu...")
+    def show_users(self, instruction = "Press Enter to return to main Menu"):
+        try:
+         self.client.send("SHOW_USERS".encode())
+        except:
+            print("Failed to show users")
+            return
+        input(f"\n{instruction}")
 
-    def show_rooms(self):
-        self.client.send("SHOW_ROOMS".encode())
-        input("\nPress Enter to return to menu...")
+
+    def show_rooms(self, instruction = "\nPress Enter to return to Main Menu" ):
+        try:
+         self.client.send("SHOW_ROOMS".encode())
+        except:
+           print("Failed to show rooms")
+           return
+        input(f"{instruction}")
 
     def read_history(self):
         print("\nRead Message History")
@@ -184,6 +189,58 @@ class ChatClient:
         self.client.send(f"CHANGE_USERNAME:{new_username}".encode())
         self.username = new_username
 
+
+    def send_private_message(self):
+        print("\n=== PRIVATE CHAT MODE ===")
+        print("Type your message and press Enter.")
+        print("Type /menu to return to the main menu.")
+
+        self.show_users(instruction="Press Enter to choose the username")
+        while True:
+           
+           recv_username = input("Send to: ")
+           if recv_username.strip() == "":
+                print("Receiver can't be empty")
+                continue
+           
+           if recv_username.lower() == "/menu":
+              return
+
+           
+           while True:
+            print("Type back to return to change recipients.")
+            message = input("You: ")
+            if message.lower() == "back":
+                break
+            
+            if message.strip() == "":
+                print("Message cannot be empty")
+                continue
+            
+            try:
+              self.client.send(f'private|{recv_username}|{message}'.encode())
+            except:
+                print("Failed to send private message")
+
+    def read_private_history(self):
+       print("\n=== READ PRIVATE CHAT MODE ===")
+       print("Type /menu to return to the main menu.")
+
+       self.show_users(instruction="Press Enter to choose the username")
+         
+       target_username = input("Read from username: ")
+       if target_username.strip() == "":
+         print("Receiver can't be empty")
+
+       if target_username == "/menu":
+          return
+       try:
+         self.client.send(f'privHistory: |{target_username}'.encode())   
+         input("Press Enter to return to Menu")
+       except:
+         print("Failed to read private message history")
+
+
     def start(self):
         receive_thread = threading.Thread(
             target=self.receive_messages,
@@ -193,18 +250,22 @@ class ChatClient:
 
         while True:
             print("\n===== CHAT MENU =====")
-            print("1. Send Message")
+            print("0. Send Private Message")
+            print("1. Send Message to Room")
             print("2. Change Room")
             print("3. Show Users")
             print("4. Show Rooms")
-            print("5. Read Message History")
-            print("6. Change Username")
-            print("7. Exit")
+            print("5. Read Room Message History")
+            print("6. Read Private Message History")
+            print("7. Change Username")
+            print("8. Invite user to room (if the room doesn't exist a new one is created)")
+            print("9. Exit")
+            choice = input("Select the option nr: ")
 
-            choice = input("Select option: ")
-
-            if choice == "1":
-                self.send_message()
+            if choice == "0":
+                self.send_private_message()
+            elif choice == "1":
+                self.send_message_room()
             elif choice == "2":
                 self.change_room()
             elif choice == "3":
@@ -214,8 +275,12 @@ class ChatClient:
             elif choice == "5":
                 self.read_history()
             elif choice == "6":
-                self.change_username()
+                self.read_private_history()
             elif choice == "7":
+                self.change_username()
+            elif choice == "8":
+                pass
+            elif choice == "9":
                 print("Disconnecting...")
                 self.client.close()
                 break
