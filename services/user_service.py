@@ -1,12 +1,13 @@
     
 from hashlib import pbkdf2_hmac
 import os
+
 class UserService:
     
-   registered_users = {}
+    registered_users = {}
 
-   @staticmethod
-   def signUp(username, password):
+    @staticmethod
+    def signUp(username, password):
      if username in UserService.registered_users:
       return "ERROR: Username already taken"
      
@@ -22,16 +23,16 @@ class UserService:
      if "|" in password:
         return "ERROR: Password cannot contain '|' character"
     
-     salt = os.urandom(32)
-     key = pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100_000)
+     salt = os.urandom(32)  # to generate different outputs from same inputs
+     key = pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100_000) #hashing the password
      UserService.registered_users[username] = {'salt':salt, 'key':key}
 
      print(f"[AUTH] New user registered: {username}")
      return "SUCCESS"
       
 
-   @staticmethod
-   def LogIn (username, password): 
+    @staticmethod
+    def LogIn (username, password): 
      if not username or not username.strip():
         return "ERROR: Username cannot be empty"
      
@@ -41,8 +42,8 @@ class UserService:
      if username not in UserService.registered_users:
         return "ERROR: Username or password incorrect"
      
-     new_salt = UserService.registered_users[username]['salt']
-     new_key = pbkdf2_hmac('sha256', password.encode('utf-8'), new_salt, 100_000)
+     new_salt = UserService.registered_users[username]['salt'] # retrieving the salt of the user
+     new_key = pbkdf2_hmac('sha256', password.encode('utf-8'), new_salt, 100_000) #hashing to then compare
 
      if new_key != UserService.registered_users[username]['key']:
       return "ERROR: Username or password incorrect"
@@ -62,31 +63,30 @@ class UserService:
     @staticmethod
     def change_username(clients, client_socket, new_username):
 
-        if new_username.strip() == "":
-            client_socket.send(
-                "ERROR: Username cannot be empty".encode()
-            )
-            return
+     if not new_username or not new_username.strip():
+        return "ERROR: Username cannot be empty"
+    
+     if "|" in new_username:
+        return "ERROR: Username cannot contain '|' character"
+        
+        
+     for client in clients:
+        if client["socket"] == client_socket:
+            old_username = client["username"]
+            
+            
+            if new_username in UserService.registered_users and new_username != old_username:
+                return "ERROR: Username already taken"
+            
+            UserService.registered_users[new_username] = UserService.registered_users.pop(old_username)
+            
+            client["username"] = new_username
 
-        for client in clients:
-
-            if client["socket"] == client_socket:
-
-                old_username = client["username"]
-
-                client["username"] = new_username
-
-                client_socket.send(
-                    f"Username changed from "
-                    f"{old_username} to {new_username}".encode()
-                )
-
-                print(
-                    f"Username changed: "
-                    f"{old_username} -> {new_username}"
-                )
-
-                return
+            
+            print(f"Username changed: {old_username} -> {new_username}")
+            return "SUCCESS"
+    
+     return "ERROR: Client not found"
 
     @staticmethod
     def remove_client(
