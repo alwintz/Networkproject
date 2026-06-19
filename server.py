@@ -47,6 +47,7 @@ server.listen()
 # rooms           -> room membership
 # user_rooms      -> current room of each client
 # message_history -> stores messages for each room
+# private_history -> stores private messages
 
 clients = []
 
@@ -61,6 +62,8 @@ message_history = {
     "Room1": [],
     "Room2": []
 }
+
+private_history = {}
 
 print(f"Server running on port {PORT}")
 print("Waiting for clients...")
@@ -77,6 +80,8 @@ print("Waiting for clients...")
 # SWITCH: |<room_name>
 # HISTORY: |<room_name>
 # CHANGE_USERNAME:<new_username>
+# private|<username>|<message>
+# privHistory: |<username>
 
 #<Any other message> - broadcast to current room
 
@@ -119,8 +124,8 @@ def handle_client(client_socket, client_address):
      if not username:
        continue    # to skip the below logic and repeat this until the authenticate returns username (logged in)
        
-   # adding each client connection 
-    clients.append({                 # 
+   # adding each client connection after auth is a success
+    clients.append({                 
         "socket": client_socket,
         "username": username,
         "ip": client_address[0],
@@ -203,6 +208,33 @@ def handle_client(client_socket, client_address):
                     client_socket,
                     new_username
                 )
+
+            elif message.startswith("private|"):
+              sender_username = UserService.get_username (clients, client_socket)
+
+              parts = message.split("|")
+              recv_username = parts[1]
+              msg = parts[2]
+
+              try:
+               MessageService.send_private_message(sender_username, client_socket, recv_username, private_history,
+                                                    msg, clients)
+              except Exception as e:
+               print(f"PRIV_MSG ERROR: {e}")
+            
+            elif message.startswith("privHistory: |"):
+              parts = message.split("|")
+              target_username = parts[1]
+
+              try:
+                MessageService.send_priv_history_to_client(
+                    private_history,
+                    client_socket,
+                    target_username,
+                    clients
+                )
+              except Exception as e:
+               print(f"PRIV_HISTORY ERROR: {e}")
 
             else:
                 username = UserService.get_username(
