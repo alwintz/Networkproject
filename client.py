@@ -123,24 +123,22 @@ class ChatClient:
             self.client.send(message.encode())
 
     def change_room(self):
-        while True:
-            print("\nAvailable Rooms")
-            print("1. Room1")
-            print("2. Room2")
-            print("0. Back")
+        self.show_rooms(instruction="Press Enter to type the room")
+       
+        room_choice = input("Choose a room name: ")
+        if room_choice.strip() == "":
+           print("Room can't be empty")
+           return
 
-            room_choice = input("Select room: ")
+        if room_choice == "/menu":
+            return
 
-            if room_choice == "0":
-                return
-            elif room_choice == "1":
-                self.client.send("SWITCH:Room1".encode())
-                return
-            elif room_choice == "2":
-                self.client.send("SWITCH:Room2".encode())
-                return
-            else:
-                print("Invalid room. Please try again.")
+        else:        
+         try:
+          self.client.send(f"SWITCH: | {room_choice}".encode())
+          return
+         except:
+          print("Failed to choose room")
 
     def show_users(self, instruction = "Press Enter to return to main Menu"):
         try:
@@ -159,25 +157,25 @@ class ChatClient:
            return
         input(f"{instruction}")
 
-    def read_history(self):
-        print("\nRead Message History")
-        print("1. Room1")
-        print("2. Room2")
-        print("0. Back")
+    def read_room_history(self):
+        print("\nREAD ROOM MESSAGE HISTORY")
+        print("Type /menu to main menu")
 
-        room_choice = input("Select room: ")
+        self.show_rooms(instruction="Press Enter to type the room")
+       
+        room_choice = input("Choose a room name: ")
+        if room_choice.strip() == "":
+           print("Room can't be empty")
+           return
 
-        if room_choice == "0":
+        if room_choice == "/menu":
             return
-        elif room_choice == "1":
-            self.client.send("HISTORY:Room1".encode())
-        elif room_choice == "2":
-            self.client.send("HISTORY:Room2".encode())
         else:
-            print("Invalid room")
-            return
-
-        input("\nPress Enter to return to menu...")
+           try:
+            self.client.send(f"HISTORY: |{room_choice}".encode())
+            input("Press Enter to return to menu")
+           except:
+            print("Failed to send the room name") 
 
     def change_username(self):
         new_username = input("Enter new username: ")
@@ -273,7 +271,7 @@ class ChatClient:
             elif choice == "4":
                 self.show_rooms()
             elif choice == "5":
-                self.read_history()
+                self.read_room_history()
             elif choice == "6":
                 self.read_private_history()
             elif choice == "7":
