@@ -238,8 +238,27 @@ class ChatClient:
        except:
          print("Failed to read private message history")
 
+    
+    def invite_room(self):
+        print("\n=== INVITE TO ROOM MODE ===")
+        print("Type /menu to return to the main menu.")
 
-    def start(self):
+        self.show_users(instruction="Press Enter to choose the username")
+       
+        username = input("Enter username: ")
+        room = input("Enter the room: ")
+
+        if username.strip() == "":
+            print("Username cannot be empty")
+            return
+      
+        try:
+         self.client.send(f"invite|{username}|{room}".encode())
+        except:
+           print("Failed to invite to room")
+
+    # thread for receiving messages. The recv () would block our ability to send messages without it
+    def start(self):  
         receive_thread = threading.Thread(
             target=self.receive_messages,
             daemon=True
@@ -277,7 +296,7 @@ class ChatClient:
             elif choice == "7":
                 self.change_username()
             elif choice == "8":
-                pass
+                self.invite_room()
             elif choice == "9":
                 print("Disconnecting...")
                 self.client.close()
@@ -288,4 +307,5 @@ class ChatClient:
 
 if __name__ == "__main__":
     chat_client = ChatClient()
-    chat_client.start()
+    chat_client.begin()   # auth first
+    chat_client.start()   # start receiving messages and the main loop 
