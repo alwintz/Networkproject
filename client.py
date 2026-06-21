@@ -13,15 +13,35 @@ class ChatClient:
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.connect((HOST, PORT))
 
+    def get_credentials (self):
+                username = input("Username: ")
+                password = input("Password: ")
+                return username, password
+        
+    def login(self):
+         print("\n===Login===")
+         username, password = self.get_credentials()
+         message = f"login|{username}|{password}"
+         try:
+          self.client.send(message.encode())
+         except Exception as e:
+          print(e)
+          return None, None
+
+         try:
+          response = self.client.recv(1024).decode()
+          print(response)
+         except Exception as e:
+          print(e)
+          return None, None
+         return response, username
+
 
     def begin(self):
         print("1. Sign Up")
         print("2. Login")
-
-        def get_credentials ():
-                username = input("Username: ")
-                password = input("Password: ")
-                return username, password
+        
+           
         
         while True:
             
@@ -30,66 +50,41 @@ class ChatClient:
          #Sign up and redirect to Login
          if choice == "1":
                 print("\n===Sign Up===")
-                username, password = get_credentials()
+                username, password = self.get_credentials()
                 message = f"signup|{username}|{password}"
+                
                 try: 
                  self.client.send(message.encode())
-                except:
-                 print("Failed to send the option (Sign Up)")
+                except Exception as e:
+                 print(e)
+                 return
 
                 try:
                  response = self.client.recv(1024).decode() 
                  print(response)
-                except:
-                    print("Server disconnected")
+                except Exception as e:
+                    print(e)
                     return
 
                 if response != "SUCCESS": 
                  continue
 
-
-                print("\n===Login===")
-                username, password = get_credentials()
-                message = f"login|{username}|{password}"
-                try:
-                 self.client.send(message.encode())
-                except:
-                    print("Failed to send the option (Login)")
-
-                try:
-                    response = self.client.recv(1024).decode() 
-                    print(response)
-                except:
-                    print("Server disconnected")
-                    return
-                
+                response, username = self.login()
                 if response == "SUCCESS":
                  self.username = username
                  print("Logged in")
+                 self.start()
                  break   
          
          #Login direct
          elif choice == "2":
-                print("\n===Login===")
-                username, password = get_credentials()
-                message = f"login|{username}|{password}"
-                try:
-                 self.client.send(message.encode())
-                except:
-                 print("Failed to send the option (Login)")
-
-                try:
-                    response = self.client.recv(1024).decode() 
-                    print(response)
-                except:
-                    print("Server disconnected")
-                    return
+           response, username = self.login()
+           if response == "SUCCESS":
+            self.username = username
+            print("Logged in")
+            self.start()
+            break   
                 
-                if response == "SUCCESS":
-                 self.username = username
-                 print("Logged in")
-                 break 
-                 
          else:
           print("Invalid option. Please select 1 or 2")
         
@@ -308,4 +303,4 @@ class ChatClient:
 if __name__ == "__main__":
     chat_client = ChatClient()
     chat_client.begin()   # auth first
-    chat_client.start()   # start receiving messages and the main loop 
+   # chat_client.start()   # start receiving messages and the main loop 
