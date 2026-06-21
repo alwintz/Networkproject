@@ -109,8 +109,11 @@ class ChatClient:
             if message.strip() == "":
                 print("Message cannot be empty")
                 continue
-
-            self.client.send(message.encode())
+            try:
+             self.client.send(message.encode())
+            except:
+                print("Failed to send the message")
+                return
 
     def change_room(self):
         self.show_rooms(instruction="Press Enter to type the room")
@@ -129,6 +132,7 @@ class ChatClient:
           return
          except:
           print("Failed to choose room")
+          return
 
     def show_users(self, instruction = "Press Enter to return to main Menu"):
         try:
@@ -166,6 +170,7 @@ class ChatClient:
             input("Press Enter to return to menu")
            except:
             print("Failed to send the room name") 
+            return
 
     def change_username(self):
         new_username = input("Enter new username: ")
@@ -174,8 +179,13 @@ class ChatClient:
             print("Username cannot be empty")
             return
 
-        self.client.send(f"CHANGE_USERNAME:{new_username}".encode())
-        self.username = new_username
+        try:
+         self.client.send(f"CHANGE_USERNAME:{new_username}".encode())
+         self.username = new_username
+
+        except:
+                print("Failed to send new username")
+                return
 
 
     def send_private_message(self):
@@ -206,9 +216,10 @@ class ChatClient:
                 continue
             
             try:
-              self.client.send(f'private|{recv_username}|{message}'.encode())
+              self.client.send(f'private: |{recv_username}|{message}'.encode())
             except:
                 print("Failed to send private message")
+                return
 
     def read_private_history(self):
        print("\n=== READ PRIVATE CHAT MODE ===")
@@ -227,6 +238,7 @@ class ChatClient:
          input("Press Enter to return to Menu")
        except:
          print("Failed to read private message history")
+         return
 
     
     def invite_room(self):
@@ -243,9 +255,10 @@ class ChatClient:
             return
       
         try:
-         self.client.send(f"invite|{username}|{room}".encode())
+         self.client.send(f"invite: |{username}|{room}".encode())
         except:
            print("Failed to invite to room")
+           return
 
     # thread for receiving messages. The recv () would block our ability to send messages without it
     def start(self):  

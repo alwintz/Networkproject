@@ -5,9 +5,14 @@ import os
 class UserService:
     
     registered_users = {}
+    next_id = 1
 
     @staticmethod
     def signUp(username, password):
+     # the id will be added as value to minimize changes as it was added later
+     user_id = UserService.next_id    
+     UserService.next_id += 1
+
      if username in UserService.registered_users:
       return "ERROR: Username already taken"
      
@@ -25,7 +30,7 @@ class UserService:
     
      salt = os.urandom(32)  # to generate different outputs from same inputs
      key = pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100_000) #hashing the password
-     UserService.registered_users[username] = {'salt':salt, 'key':key}
+     UserService.registered_users[username] = {'id': user_id, 'salt':salt, 'key':key}
 
      print(f"[AUTH] New user registered: {username}")
      return "SUCCESS"
