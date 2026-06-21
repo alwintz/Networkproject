@@ -91,7 +91,7 @@ class ChatClient:
                 message = self.client.recv(1024).decode()
                 if message:
                     print(f"\n{message}")
-                    if message .startswith("You were invite to join a room: |"):
+                    if message .startswith("You were invited to join a room: |"):
                        self.pending_invite_queue.put(message) # enqueue all messages that are invites
             except:
                 print("Disconnected from server")

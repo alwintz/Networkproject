@@ -93,3 +93,45 @@ class RoomService:
         )
 
         return True
+    
+    @staticmethod
+    def invite_to_room (
+        sender_username,
+        sender_socket,
+        recv_username,
+        new_room,
+        user_rooms,
+        rooms, 
+        clients,
+        max_users_per_room,
+        pending_invites
+    ):
+        recv_socket = None
+        for client in clients:
+            if client ["username"] == recv_username:
+                recv_socket = client ["socket"]
+                break
+
+        if recv_socket is None:
+            try:
+               sender_socket.send(f"User {recv_username} not found".encode())
+            except:
+               print (f"Failed to notify {sender_username} that user not found")
+            return "User not found"
+                
+        try:
+            if new_room not in rooms:
+              rooms[new_room] = []  # create a new room if it doesn't exist
+            RoomService.switch_room(rooms, user_rooms, sender_socket, new_room, max_users_per_room) # switch sender to room also
+            recv_socket.send(f"You were invited to join a room: |{sender_username} to {new_room}.\n Press Enter for the options to appear".encode())
+            pending_invites[recv_socket] = (sender_socket, new_room) # store the invite in server
+            return "Invite sent"
+                  
+        except:
+            print(f"Failed to send invite to {recv_username}")
+            return "Failed to send invite"
+            
+                
+          
+     
+          
