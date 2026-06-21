@@ -1,4 +1,3 @@
-from controller.menu import Menu
 import socket
 import threading
 
