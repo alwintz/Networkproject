@@ -85,13 +85,10 @@ class MessageService:
           except:
             print(f"Failed to send message to {client_socket}")
 
-            
-            
-
-
 
     @staticmethod
     def send_private_message(
+        sender_id,
         sender_username,
         sender_socket,
         recv_username,
@@ -104,14 +101,15 @@ class MessageService:
         for client in clients:
             if client["username"] == recv_username:
                 recv_socket = client["socket"]
+                recv_id = client["user_id"]
+
                 full_message = (
                     f"{sender_username}: {message}"
                      )
 
                 # tuple that will identify each private message
-                # sorted makes the key unique regardless of who is sending/ receiving
-                # it's recognized that ideally ID's should had been added in auth used  for the key as names can change, 
-                private_key = tuple(sorted([sender_username, recv_username]))
+                # sorted makes the key unique regardless of who is sending/ receiving 
+                private_key = tuple(sorted([sender_id, recv_id]))
 
                 #add the private key with value as an array where future messages will be appended
                 if private_key not in private_history:
@@ -134,34 +132,51 @@ class MessageService:
     
     
     @staticmethod
-    def send_priv_history_to_client(private_history, client_socket, requester_username, target_username):
-        
-        private_key = tuple(sorted([requester_username, target_username]))
+    def send_priv_history_to_client(
+        requester_id,
+        private_history,
+        client_socket,
+        requester_username,
+        target_username,
+        clients):
 
-        if private_key in private_history:
-           history_text = (
-                f"\n--- Message History "
-                f"for {requester_username} and {target_username} ---\n"
-            )
-            
-            # how the message will be sent and printed in the client
-           history_text += "\n".join(
-                private_history[private_key]
-            )
-           history_text += "\n-----------------------\n"
+        for client in clients:
+           if client["username"] == target_username:
+              target_id = client["user_id"]
 
-           try:
-            client_socket.send(history_text.encode())
-           except:
-            print("Failed to send private history to client")
+              private_key = tuple(sorted([requester_id, target_id]))
 
-        else:
-           try: 
-              client_socket.send(f"No previous messages between you and {target_username}")
-           except:
-              print(f"Failed to notify that there weren't any messages between {requester_username} and {target_username}")
-            
+              if private_key in private_history:
+                history_text = (
+                    f"\n--- Message History "
+                    f"for {requester_username} and {target_username} ---\n"
+                )
+
+                history_text += "\n".join(private_history[private_key])
+                history_text += "\n-----------------------\n"
+
+                try:
+                    client_socket.send(history_text.encode())
+                    return "Sent"
+                except:
+                    print(f"Failed to send private history to {target_username}")
+                    return "Failed"
+
+              else:
+                try:
+                    client_socket.send(
+                        f"No previous messages between you and {target_username}".encode()
+                    )
+                    return "Sent"
+                except:
+                    print("Failed to notify empty history")
+                    return "Failed"
+
     
-
-
+        try:
+          client_socket.send(f"User {target_username} not found".encode())
+          return "Failed"
+        except:
+          print("Failed to notify missing user")
+          return "Failed"
             

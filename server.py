@@ -120,7 +120,8 @@ def handle_client(client_socket, client_address):
         "socket": client_socket,
         "username": username,
         "ip": client_address[0],
-        "port": client_address[1]
+        "port": client_address[1],
+        "user_id": UserService.registered_users[username]['id']
     })
 
     rooms["Room1"].append(client_socket)
