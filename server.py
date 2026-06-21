@@ -166,7 +166,7 @@ def handle_client(client_socket, client_address):
                 )
 
             elif message.startswith("SWITCH: |"):
-                room_name = message.split(":", 1)[1]
+                room_name = message.split("|", 1)[1]
 
                 success = RoomService.switch_room(
                     rooms,
@@ -184,7 +184,7 @@ def handle_client(client_socket, client_address):
                     )
 
             elif message.startswith("HISTORY: |"):
-                room_name = message.split(":", 1)[1]
+                room_name = message.split("|", 1)[1]
 
                 MessageService.send_history_to_client(
                     message_history,

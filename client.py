@@ -128,7 +128,7 @@ class ChatClient:
 
         else:        
          try:
-          self.client.send(f"SWITCH: | {room_choice}".encode())
+          self.client.send(f"SWITCH: |{room_choice}".encode())
           return
          except:
           print("Failed to choose room")
