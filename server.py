@@ -87,41 +87,33 @@ print("Waiting for clients...")
 
 #authenticate and return the username
 def authenticate(client_socket):
-  try:
-    while True: 
-     auth_message = client_socket.recv(1024).decode() 
+    auth_message = client_socket.recv(1024).decode()
 
-     if not auth_message:
-      return None
-    
-     splits = auth_message.split("|")
-     action = splits[0]
-     username = splits[1]
-     password = splits[2]
+    if not auth_message:
+        return None
+    action, username, password = auth_message.split("|")
 
-     if action == "signup":
-         response = UserService.signUp(username, password)
-         client_socket.send(response.encode()) 
-         continue
-         
-     elif action == "login":
+    if action == "signup":
+        response = UserService.signUp(username, password)
+        client_socket.send(response.encode())
+
+        return None   
+
+    elif action == "login":
         response = UserService.LogIn(username, password)
         client_socket.send(response.encode())
-        if response == "SUCCESS":
-           return username
-        continue
-     
-     
-  except Exception as e:
-        print("AUTH ERROR: ", e)
-        return
-      
-def handle_client(client_socket, client_address):
-    username = authenticate(client_socket)
 
-    if not username:
-        client_socket.close()
-        return
+        if response == "SUCCESS":
+            return username   
+
+        return None 
+    
+def handle_client(client_socket, client_address):
+    username = None
+
+    while username is None:
+        username = authenticate(client_socket)
+
        
    # adding each client connection after auth is a success
     clients.append({                 

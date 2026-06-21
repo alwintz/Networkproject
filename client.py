@@ -41,10 +41,7 @@ class ChatClient:
         print("1. Sign Up")
         print("2. Login")
         
-           
-        
-        while True:
-            
+        while True:    
          choice = input("Select the option nr: ")
 
          #Sign up and redirect to Login
@@ -52,13 +49,11 @@ class ChatClient:
                 print("\n===Sign Up===")
                 username, password = self.get_credentials()
                 message = f"signup|{username}|{password}"
-                
                 try: 
                  self.client.send(message.encode())
                 except Exception as e:
                  print(e)
                  return
-
                 try:
                  response = self.client.recv(1024).decode() 
                  print(response)
@@ -67,13 +62,13 @@ class ChatClient:
                     return
 
                 if response != "SUCCESS": 
-                 continue
-
+                 continue              # if signup not a success skip login and start the while True from beginning
                 response, username = self.login()
+
                 if response == "SUCCESS":
                  self.username = username
                  print("Logged in")
-                 self.start()
+                 self.start()       # this way the receive thread only starts after login avoiding  conflict of recv()
                  break   
          
          #Login direct
@@ -302,5 +297,5 @@ class ChatClient:
 
 if __name__ == "__main__":
     chat_client = ChatClient()
-    chat_client.begin()   # auth first
-   # chat_client.start()   # start receiving messages and the main loop 
+    chat_client.begin()   
+
