@@ -203,25 +203,31 @@ def handle_client(client_socket, client_address):
 
             elif message.startswith("private: |"):
               sender_username = UserService.get_username (clients, client_socket)
+              sender_id = UserService.registered_users[sender_username]["id"]
 
               parts = message.split("|")
               recv_username = parts[1]
               msg = parts[2]
 
               try:
-               MessageService.send_private_message(sender_username, client_socket, recv_username, private_history,
+               MessageService.send_private_message(sender_id, sender_username, client_socket, recv_username, private_history,
                                                     msg, clients)
               except Exception as e:
                print(f"PRIV_MSG ERROR: {e}")
             
             elif message.startswith("privHistory: |"):
+              requester_username = UserService.get_username (clients, client_socket)
+              requester_id = UserService.registered_users[requester_username]["id"]
+
               parts = message.split("|")
               target_username = parts[1]
 
               try:
                 MessageService.send_priv_history_to_client(
+                    requester_id,
                     private_history,
                     client_socket,
+                    requester_username,
                     target_username,
                     clients
                 )
