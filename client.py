@@ -1,5 +1,6 @@
 import socket
 import threading
+import queue 
 
 HOST = "127.0.0.1"
 PORT = 5000
@@ -11,6 +12,7 @@ class ChatClient:
 
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.connect((HOST, PORT))
+        self.pending_invite_queue = queue.Queue() # all pending invites will be stored in this queue
 
     def get_credentials (self):
                 username = input("Username: ")
@@ -89,6 +91,8 @@ class ChatClient:
                 message = self.client.recv(1024).decode()
                 if message:
                     print(f"\n{message}")
+                    if message .startswith("You were invite to join a room: |"):
+                       self.pending_invite_queue.put(message) # enqueue all messages that are invites
             except:
                 print("Disconnected from server")
                 break
@@ -114,6 +118,7 @@ class ChatClient:
                 print("Failed to send the message")
                 return
 
+
     def change_room(self):
         self.show_rooms(instruction="Press Enter to type the room")
        
@@ -133,6 +138,7 @@ class ChatClient:
           print("Failed to choose room")
           return
 
+
     def show_users(self, instruction = "Press Enter to return to main Menu"):
         try:
          self.client.send("SHOW_USERS".encode())
@@ -149,6 +155,7 @@ class ChatClient:
            print("Failed to show rooms")
            return
         input(f"{instruction}")
+
 
     def read_room_history(self):
         print("\nREAD ROOM MESSAGE HISTORY")
@@ -170,6 +177,7 @@ class ChatClient:
            except:
             print("Failed to send the room name") 
             return
+
 
     def change_username(self):
         new_username = input("Enter new username: ")
@@ -220,6 +228,7 @@ class ChatClient:
                 print("Failed to send private message")
                 return
 
+
     def read_private_history(self):
        print("\n=== READ PRIVATE CHAT MODE ===")
        print("Type /menu to return to the main menu.")
@@ -254,10 +263,11 @@ class ChatClient:
             return
       
         try:
-         self.client.send(f"invite: |{username}|{room}".encode())
+         self.client.send(f"INVITE: |{username}|{room}".encode())
         except:
            print("Failed to invite to room")
            return
+
 
     # thread for receiving messages. The recv () would block our ability to send messages without it
     def start(self):  
@@ -268,6 +278,18 @@ class ChatClient:
         receive_thread.start()
 
         while True:
+            # the invites will be shown before each menu iteration 
+            while not self.pending_invite_queue.empty():
+                  invite_msg = self.pending_invite_queue.get_nowait()
+                  print("\n" + invite_msg)
+                  
+                  while True:
+                    choice = input("1 to Accept/ 2 to Deny")
+                    if choice in ("1", "2"): 
+                      self.client.send (f"invResponse: |{choice}".encode())
+                      break
+                    print ("Invalid response: Please choose between 1 and 2")
+
             print("\n===== CHAT MENU =====")
             print("0. Send Private Message")
             print("1. Send Message to Room")
