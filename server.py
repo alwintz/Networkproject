@@ -83,8 +83,11 @@ print("Waiting for clients...")
 # SWITCH: |<room_name>
 # HISTORY: |<room_name>
 # CHANGE_USERNAME:<new_username>
-# private|<username>|<message>
+# private: |<username>|<message>
 # privHistory: |<username>
+# invResponse: |1
+# invResponse: |2
+# You were invited to join a room: | <sender{username}> to <room>
 
 #<Any other message> - broadcast to current room
 
