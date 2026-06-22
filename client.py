@@ -15,8 +15,8 @@ class ChatClient:
         self.pending_invite_queue = queue.Queue() # all pending invites will be stored in this queue
 
     def get_credentials (self):
-                username = input("Username: ")
-                password = input("Password: ")
+                username = input("Username: ").strip()
+                password = input("Password: ").strip()
                 return username, password
         
     def login(self):
@@ -43,7 +43,7 @@ class ChatClient:
         print("2. Login")
         
         while True:    
-         choice = input("Select the option nr: ")
+         choice = input("Select the option nr: ").strip()
 
          #Sign up and redirect to Login
          if choice == "1":
@@ -122,7 +122,7 @@ class ChatClient:
     def change_room(self):
         self.show_rooms(instruction="Press Enter to type the room")
        
-        room_choice = input("Choose a room name: ")
+        room_choice = input("Choose a room name: ").strip()
         if room_choice.strip() == "":
            print("Room can't be empty")
            return
@@ -163,7 +163,7 @@ class ChatClient:
 
         self.show_rooms(instruction="Press Enter to type the room")
        
-        room_choice = input("Choose a room name: ")
+        room_choice = input("Choose a room name: ").strip()
         if room_choice.strip() == "":
            print("Room can't be empty")
            return
@@ -180,7 +180,7 @@ class ChatClient:
 
 
     def change_username(self):
-        new_username = input("Enter new username: ")
+        new_username = input("Enter new username: ").strip()
 
         if new_username.strip() == "":
             print("Username cannot be empty")
@@ -203,7 +203,7 @@ class ChatClient:
         self.show_users(instruction="Press Enter to choose the username")
         while True:
            
-           recv_username = input("Send to: ")
+           recv_username = input("Send to: ").strip()
            if recv_username.strip() == "":
                 print("Receiver can't be empty")
                 continue
@@ -235,9 +235,10 @@ class ChatClient:
 
        self.show_users(instruction="Press Enter to choose the username")
          
-       target_username = input("Read from username: ")
+       target_username = input("Read from username: ").strip()
        if target_username.strip() == "":
          print("Receiver can't be empty")
+         return
 
        if target_username == "/menu":
           return
@@ -255,8 +256,8 @@ class ChatClient:
 
         self.show_users(instruction="Press Enter to choose the username")
        
-        username = input("Enter username: ")
-        room = input("Enter the room: ")
+        username = input("Enter username: ").strip()
+        room = input("Enter the room: ").strip()
 
         if username.strip() == "":
             print("Username cannot be empty")
@@ -301,7 +302,7 @@ class ChatClient:
             print("7. Change Username")
             print("8. Invite user to room (if the room doesn't exist a new one is created)")
             print("9. Exit")
-            choice = input("Select the option nr: ")
+            choice = input("Select the option nr: ").strip()
 
             if choice == "0":
                 self.send_private_message()
