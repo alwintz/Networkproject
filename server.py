@@ -88,6 +88,7 @@ print("Waiting for clients...")
 # invResponse: |1
 # invResponse: |2
 # You were invited to join a room: | <sender{username}> to <room>
+# No user input should have : or |
 
 #<Any other message> - broadcast to current room
 
