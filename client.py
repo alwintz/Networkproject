@@ -284,7 +284,7 @@ class ChatClient:
                   print("\n" + invite_msg)
                   
                   while True:
-                    choice = input("1 to Accept/ 2 to Deny")
+                    choice = input("Press 1 to Accept/ Press 2 to Deny: ")
                     if choice in ("1", "2"): 
                       self.client.send (f"invResponse: |{choice}".encode())
                       break

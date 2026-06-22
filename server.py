@@ -48,6 +48,7 @@ server.listen()
 # user_rooms      -> current room of each client
 # message_history -> stores messages for each room
 # private_history -> stores private messages
+# pending_invites - > store all invits to room that haven't been answered
 
 clients = []
 
@@ -64,6 +65,8 @@ message_history = {
 }
 
 private_history = {}
+
+pending_invites = {}
 
 print(f"Server running on port {PORT}")
 print("Waiting for clients...")
@@ -234,6 +237,68 @@ def handle_client(client_socket, client_address):
               except Exception as e:
                print(f"PRIV_HISTORY ERROR: {e}")
 
+            elif message.startswith("INVITE: |"):
+               sender_username = UserService.get_username (clients, client_socket)
+
+               parts = message.split("|")
+               recv_username= parts[1]
+               new_room = parts[2]
+               
+               try:
+                RoomService.invite_to_room (
+                sender_username,
+                client_socket,
+                recv_username,
+                new_room,
+                user_rooms,
+                rooms, 
+                clients,
+                MAX_USERS_PER_ROOM,
+                pending_invites)
+
+
+               except Exception as e:
+                    print("INVITE ROOM ERROR:", e)
+
+            elif message.startswith("invResponse: |"):
+                 
+                 invited_username = UserService.get_username (clients, client_socket)
+                 inviter_socket, new_room = pending_invites.pop(client_socket, (None, None)) #delete if exists cause is not pending no more
+
+                 if not inviter_socket:
+                  continue
+
+                 parts = message.split("|")
+                 answer = parts[1]
+
+                 if answer == "1":
+                    try:
+                     RoomService.switch_room(rooms, user_rooms, client_socket, new_room, MAX_USERS_PER_ROOM)
+                    except Exception as e:
+                     print(f"SWITCH ROOM ERROR: {e}")
+
+                    try:
+                     inviter_socket.send(f"{invited_username} accepted your invite to {new_room}".encode())
+                    except:
+                     print("Failed to notify the inviter")
+
+                    try:
+                      client_socket.send (f"You have been added to {new_room}".encode())
+                    except:
+                      print("Failed to notify the invited")
+
+
+                 elif answer == "2":
+                    try:
+                     inviter_socket.send(f"{invited_username} denied your invite to {new_room}".encode())
+                    except:
+                     print("Failed to notify the inviter")
+
+                    try:
+                     client_socket.send (f"You denied being added to {new_room}".encode())    
+                    except:
+                     print("Failed to notify the invited")   
+ 
             else:
                 username = UserService.get_username(
                     clients,
